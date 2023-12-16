@@ -1,0 +1,30 @@
+<!-- For use in Google Apps Script in Google Sheets 
+ Explanation: https://support.google.com/docs/thread/173106523/can-i-export-a-list-of-users-who-have-been-given-access-to-one-of-my-google-sheets?hl=en
+-->
+
+/** CUSTOM MENU for any user */
+function onOpen(){
+ const ui = SpreadsheetApp.getUi();
+     ui.createMenu('⚠️Admin Menu⚠️')
+       .addItem('🕵️ Get file Owner, Editors, and Viewers', 'getOwnerEditorsViewers')
+       .addToUi();}
+/** END CUSTOM MENU */
+
+function getOwnerEditorsViewers() {
+  const sheet = SpreadsheetApp.getActive().getSheetByName("Sheet1");
+  const ids = sheet.getRange('E2:e').getValues().flat().filter(String);
+  const table = [];
+  
+  for (let id of ids) {
+    try {
+      var file    = DriveApp.getFileById(id);
+      var owner   = file.getOwner().getEmail();
+      var editors = file.getEditors().map(e => e.getEmail()).join('\n');
+      var viewers = file.getViewers().map(v => v.getEmail()).join('\n');
+      table.push([id, owner, editors, viewers]);
+    } catch(e) {
+      table.push([id, '', '', '']);
+    }
+  }
+  sheet.getRange(2,1,table.length,table[0].length).setValues(table);
+}
